@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>משחק האוטובוס של העיר</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <section class="info-panel">
+      <p class="eyebrow">משחק מצויר לילדים</p>
+      <h1>אוטובוס העיר</h1>
+      <p class="intro">הסיעו את האוטובוס ברחבי העיר, עצרו איפה שיש נוסעים, ופתחו להם את הדלתות. תוכלו לסובב ולזוז על המפה כדי לראות עוד חלקים בעיר.</p>
+
+      <div class="info-grid">
+        <div class="panel-card">
+          <h2>איך משחקים</h2>
+          <ul>
+            <li>לחצו על נסיעה כדי להמשיך למסלול.</li>
+            <li>עצרו בכל תחנה שבה יש אנשים.</li>
+            <li>פתחו את הדלתות כדי לקחת נוסע.</li>
+            <li>חזרו לתחנה המרכזית לסיום המשחק.</li>
+          </ul>
+        </div>
+
+        <div class="panel-card">
+          <h2>מבט מהיר</h2>
+          <div id="miniMap" class="mini-map" aria-hidden="true">
+            <div class="mini-route"></div>
+            <div class="mini-center"></div>
+            <div id="miniBus" class="mini-bus"></div>
+          </div>
+          <p id="miniStatus">מרכז העיר · נסיעה רגילה</p>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button id="driveBtn" class="primary">נסיעה</button>
+        <button id="stopBtn">עצירה</button>
+        <button id="doorBtn">פתיחת דלתות</button>
+        <button id="resetBtn" class="secondary">התחל מחדש</button>
+      </div>
+
+      <div class="controls compact-controls">
+        <button id="fitBtn">מבט כללי</button>
+        <button id="busBtn">מרכז אוטובוס</button>
+        <button id="zoomInBtn">+</button>
+        <button id="zoomOutBtn">-</button>
+      </div>
+
+      <div class="status-box">
+        <p id="statusText">התחלתם בתחנה המרכזית. לחצו על נסיעה כדי לצאת לדרך!</p>
+        <p id="scoreText">נוסעים שנכנסו: 0</p>
+        <p id="progressText">התחנה הנוכחית: מרכז</p>
+      </div>
+
+      <div class="route-card">
+        <h2>המסלול</h2>
+        <ol id="routeList" class="route-list"></ol>
+      </div>
+    </section>
+
+    <section class="game-stage" aria-label="מפת העיר">
+      <div class="map-toolbar">
+        <span>גררו על המפה או גללו להגדלה</span>
+      </div>
+      <div id="mapViewport" class="map-viewport">
+        <div id="world" class="world-map">
+          <div class="sky-layer"></div>
+          <div class="sun"></div>
+          <div class="cloud cloud-1"></div>
+          <div class="cloud cloud-2"></div>
+
+          <div class="road road-main"></div>
+          <div class="road road-diagonal"></div>
+          <div class="road road-branch"></div>
+          <div class="road road-bridge"></div>
+
+          <div class="water water-1"></div>
+          <div class="water water-2"></div>
+
+          <div class="zone park-zone park-a"></div>
+          <div class="zone park-zone park-b"></div>
+          <div class="zone school-zone"></div>
+          <div class="zone library-zone"></div>
+          <div class="zone market-zone"></div>
+          <div class="zone hospital-zone"></div>
+          <div class="zone bakery-zone"></div>
+          <div class="zone museum-zone"></div>
+          <div class="zone homes-zone"></div>
+
+          <div class="tree-row tree-row-1"></div>
+          <div class="tree-row tree-row-2"></div>
+          <div class="tree-row tree-row-3"></div>
+
+          <div class="playground-structure playground-main"></div>
+          <div class="playground-structure swing-set"></div>
+          <div class="playground-structure slide-set"></div>
+
+          <div class="fountain"></div>
+          <div class="bridge"></div>
+
+          <div class="stop stop-center" data-stop="מרכז" data-x="50" data-y="50">
+            <div class="stop-sign"></div>
+            <span>מרכז</span>
+          </div>
+          <div class="stop stop-park" data-stop="גן משחקים" data-x="24" data-y="24">
+            <div class="stop-sign"></div>
+            <span>גן משחקים</span>
+          </div>
+          <div class="stop stop-library" data-stop="ספרייה" data-x="66" data-y="18">
+            <div class="stop-sign"></div>
+            <span>ספרייה</span>
+          </div>
+          <div class="stop stop-market" data-stop="שוק" data-x="79" data-y="35">
+            <div class="stop-sign"></div>
+            <span>שוק</span>
+          </div>
+          <div class="stop stop-school" data-stop="בית ספר" data-x="74" data-y="61">
+            <div class="stop-sign"></div>
+            <span>בית ספר</span>
+          </div>
+          <div class="stop stop-park2" data-stop="פארק" data-x="35" data-y="72">
+            <div class="stop-sign"></div>
+            <span>פארק</span>
+          </div>
+          <div class="stop stop-health" data-stop="מרפאה" data-x="20" data-y="78">
+            <div class="stop-sign"></div>
+            <span>מרפאה</span>
+          </div>
+          <div class="stop stop-museum" data-stop="מוזיאון" data-x="89" data-y="78">
+            <div class="stop-sign"></div>
+            <span>מוזיאון</span>
+          </div>
+
+          <div id="bus" class="bus" aria-label="אוטובוס קטן">
+            <div class="bus-top"></div>
+            <div class="bus-body"></div>
+            <div class="bus-door"></div>
+            <div class="wheel wheel-left"></div>
+            <div class="wheel wheel-right"></div>
+            <div class="window window-1"></div>
+            <div class="window window-2"></div>
+            <div class="window window-3"></div>
+          </div>
+
+          <div id="passengerBadge" class="passenger-badge">👦</div>
+        </div>
+      </div>
+      <div class="view-hint">הצעדים: נסיעה, עצירה, פתיחת דלתות, והתמקדות במפה.</div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

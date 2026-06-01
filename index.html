@@ -177,9 +177,9 @@
     <div class="dp empty"></div>
     <div class="dp" id="dpUp">⬆️</div>
     <div class="dp empty"></div>
-    <div class="dp" id="dpLeft">⬅️</div>
-    <div class="dp empty"></div>
     <div class="dp" id="dpRight">➡️</div>
+    <div class="dp empty"></div>
+    <div class="dp" id="dpLeft">⬅️</div>
     <div class="dp empty"></div>
     <div class="dp" id="dpDown">⬇️</div>
     <div class="dp empty"></div>
@@ -1231,15 +1231,15 @@ function loop(ts) {
 window.addEventListener('keydown', e => {
   if (['ArrowUp','w','W'].includes(e.key))    { keys.up    = true; initAudio(); e.preventDefault(); }
   if (['ArrowDown','s','S'].includes(e.key))  { keys.down  = true; initAudio(); e.preventDefault(); }
-  if (['ArrowLeft','a','A'].includes(e.key))  { keys.right = true; initAudio(); e.preventDefault(); }
-  if (['ArrowRight','d','D'].includes(e.key)) { keys.left  = true; initAudio(); e.preventDefault(); }
+  if (['ArrowLeft','a','A'].includes(e.key))  { keys.left  = true; initAudio(); e.preventDefault(); }
+  if (['ArrowRight','d','D'].includes(e.key)) { keys.right = true; initAudio(); e.preventDefault(); }
   if (e.key === ' ') { openDoor(); e.preventDefault(); }
 });
 window.addEventListener('keyup', e => {
   if (['ArrowUp','w','W'].includes(e.key))    keys.up    = false;
   if (['ArrowDown','s','S'].includes(e.key))  keys.down  = false;
-  if (['ArrowLeft','a','A'].includes(e.key))  keys.right = false;
-  if (['ArrowRight','d','D'].includes(e.key)) keys.left  = false;
+  if (['ArrowLeft','a','A'].includes(e.key))  keys.left  = false;
+  if (['ArrowRight','d','D'].includes(e.key)) keys.right = false;
 });
 
 function bindDpad(id, key) {
@@ -1252,7 +1252,7 @@ function bindDpad(id, key) {
   el.addEventListener('pointercancel',up);
 }
 bindDpad('dpUp','up'); bindDpad('dpDown','down');
-bindDpad('dpLeft','right'); bindDpad('dpRight','left');
+bindDpad('dpLeft','left'); bindDpad('dpRight','right');
 
 document.getElementById('btnFinish').addEventListener('pointerdown', e => { e.preventDefault(); if (gameState === 'playing') winGame(); });
 document.getElementById('btnDoor').addEventListener('pointerdown', e => { e.preventDefault(); openDoor(); });

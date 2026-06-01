@@ -254,7 +254,7 @@ try {
   firebase.initializeApp(FIREBASE_CONFIG);
   leaderboardRef = firebase.database().ref('leaderboard');
 } catch (e) {
-  console.warn('Firebase not configured:', e.message);
+  console.error('Firebase init error:', e);
 }
 
 async function fetchTopScores() {
@@ -278,8 +278,9 @@ async function initLeaderboardUI(finalScore) {
       setTimeout(() => document.getElementById('playerNameInput').focus(), 100);
     }
   } catch (e) {
+    console.error('Leaderboard fetch error:', e);
     document.getElementById('leaderboardTable').innerHTML =
-      '<p style="color:#ff8a80;text-align:center;font-size:13px">שגיאה בטעינת הטבלה</p>';
+      `<p style="color:#ff8a80;text-align:center;font-size:13px">שגיאה: ${e.message}</p>`;
   }
 }
 

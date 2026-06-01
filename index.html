@@ -203,7 +203,7 @@
   </p>
   <p class="keys">⬆️⬇️⬅️➡️ לנסיעה &nbsp;|&nbsp; 🚪 לפתיחת דלת &nbsp;|&nbsp; מקלדת: חצים + רווח</p>
   <button id="startBtn" onclick="startGame()">יאללה נסעים! 🚀</button>
-  <p class="version">v1.5</p>
+  <p class="version">v1.6</p>
 </div>
 
 <div id="winScreen">
@@ -262,11 +262,14 @@ try {
 
 async function fetchTopScores() {
   if (!leaderboardRef) return [];
-  const snap = await leaderboardRef.orderByChild('score').limitToLast(10).get();
+  const snap = await leaderboardRef.orderByChild('score').limitToLast(100).get();
   if (!snap.exists()) return [];
-  const entries = [];
-  snap.forEach(child => entries.push(child.val()));
-  return entries.sort((a, b) => b.score - a.score);
+  const all = [];
+  snap.forEach(child => all.push(child.val()));
+  // keep only best score per name
+  const best = {};
+  all.forEach(e => { if (!best[e.name] || e.score > best[e.name].score) best[e.name] = e; });
+  return Object.values(best).sort((a, b) => b.score - a.score).slice(0, 10);
 }
 
 async function initLeaderboardUI(finalScore) {
@@ -294,13 +297,11 @@ async function submitToLeaderboard() {
   btn.disabled = true;
   btn.textContent = 'שומר...';
   try {
-    await leaderboardRef.push({ name, score, date: Date.now() });
+    const tag = Date.now();
+    await leaderboardRef.push({ name, score, date: tag });
     document.getElementById('nameEntry').style.display = 'none';
     const top = await fetchTopScores();
-    let hi = -1;
-    for (let i = 0; i < top.length; i++) {
-      if (top[i].name === name && top[i].score === score) { hi = i; break; }
-    }
+    const hi = top.findIndex(e => e.name === name && e.date === tag);
     renderLeaderboard(top, hi);
   } catch (e) {
     btn.disabled = false;
@@ -731,7 +732,7 @@ function renderLeaderboard(lb, highlightIdx) {
   let html = '<table><tr><th style="text-align:center">#</th><th style="text-align:right">שם</th><th style="text-align:center">ניקוד</th></tr>';
   lb.forEach((entry, i) => {
     const cls = i === highlightIdx ? 'new-entry' : (i % 2 === 0 ? 'even' : '');
-    const place = medals[i] !== undefined ? medals[i] : (i + 1);
+    const place = medals[i] || (i + 1);
     const nameColor = i === highlightIdx ? '#ffd700' : 'white';
     html += `<tr class="${cls}">
       <td style="text-align:center;color:#ffd700">${place}</td>

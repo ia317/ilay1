@@ -108,11 +108,13 @@
     #winScreen {
       position: absolute; inset: 0; z-index: 40;
       background: rgba(0,0,0,0.72); display: none;
-      flex-direction: column; align-items: center; justify-content: center;
-      color: white; font-family: 'Comic Sans MS', cursive; text-align: center; padding: 20px;
+      flex-direction: column; align-items: center; justify-content: flex-start;
+      color: white; font-family: 'Comic Sans MS', cursive; text-align: center;
+      padding: 20px; overflow-y: auto;
     }
     #winScreen.show { display: flex; }
-    #winScreen h2 { font-size: clamp(28px,6vw,46px); color: #ffd700; text-shadow: 2px 3px 8px rgba(0,0,0,0.6); }
+    #winScreen > * { flex-shrink: 0; }
+    #winScreen h2 { font-size: clamp(28px,6vw,46px); color: #ffd700; text-shadow: 2px 3px 8px rgba(0,0,0,0.6); margin-top: 16px; }
     #winScreen p { font-size: clamp(13px,2.8vw,19px); margin: 7px 0; }
     #winScreen .scoreBreakdown { font-size: clamp(11px,2.2vw,15px); opacity: 0.82; margin: 4px 0; }
     #replayBtn {
@@ -124,6 +126,35 @@
       transition: transform 0.15s;
     }
     #replayBtn:hover { transform: scale(1.06); }
+
+    /* ── Leaderboard ── */
+    #nameEntry { margin-top: 14px; text-align: center; }
+    #nameEntry p { color: #ffd700; font-size: clamp(13px,3vw,17px); margin-bottom: 10px; }
+    #nameEntryRow { display: flex; gap: 8px; align-items: center; justify-content: center; flex-wrap: wrap; }
+    #playerNameInput {
+      padding: 10px 16px; border-radius: 20px;
+      border: 2px solid #ffd700; background: rgba(255,255,255,0.12);
+      color: white; font-size: clamp(14px,3vw,16px);
+      font-family: 'Comic Sans MS', cursive; text-align: center;
+      outline: none; width: 200px; direction: rtl;
+    }
+    #playerNameInput::placeholder { color: rgba(255,255,255,0.5); }
+    #submitNameBtn {
+      padding: 10px 20px; border: none; border-radius: 20px;
+      background: linear-gradient(135deg, #ffd700, #ff8c00);
+      color: #3a1a00; font-size: clamp(14px,3vw,16px);
+      font-family: 'Comic Sans MS', cursive; font-weight: bold;
+      cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+      transition: transform 0.12s;
+    }
+    #submitNameBtn:hover { transform: scale(1.06); }
+    #leaderboardSection { margin-top: 18px; width: 100%; max-width: 420px; }
+    #leaderboardSection h3 { color: #ffd700; font-size: clamp(15px,3.5vw,20px); margin-bottom: 8px; }
+    #leaderboardTable table { width: 100%; border-collapse: collapse; font-family: 'Comic Sans MS', cursive; font-size: clamp(12px,2.5vw,14px); }
+    #leaderboardTable th { color: #ffd700; padding: 5px 8px; border-bottom: 1px solid rgba(255,215,0,0.5); }
+    #leaderboardTable td { padding: 5px 8px; }
+    #leaderboardTable tr.new-entry { background: rgba(255,215,0,0.2); font-weight: bold; }
+    #leaderboardTable tr.even { background: rgba(255,255,255,0.05); }
   </style>
 </head>
 <body>
@@ -167,7 +198,7 @@
   </p>
   <p class="keys">⬆️⬇️⬅️➡️ לנסיעה &nbsp;|&nbsp; 🚪 לפתיחת דלת &nbsp;|&nbsp; מקלדת: חצים + רווח</p>
   <button id="startBtn" onclick="startGame()">יאללה נסעים! 🚀</button>
-  <p class="version">v1.1</p>
+  <p class="version">v1.2</p>
 </div>
 
 <div id="winScreen">
@@ -179,9 +210,99 @@
   <p class="scoreBreakdown" id="winPenaltyRow" style="color:#ff8a80">עונשים: <b id="winPenalty">0</b></p>
   <p style="margin-top:8px">הסעת <b id="winPassengers" style="color:#ffd700;font-size:1.3em">0</b> נוסעים!</p>
   <button id="replayBtn" onclick="resetGame()">שחק שוב! 🔄</button>
+
+  <div id="nameEntry" style="display:none">
+    <p>🏆 הניקוד שלך נכנס לטבלת השיאים!</p>
+    <div id="nameEntryRow">
+      <input id="playerNameInput" type="text" placeholder="הכנס את שמך..." maxlength="20" />
+      <button id="submitNameBtn" onclick="submitToLeaderboard()">שמור 💾</button>
+    </div>
+  </div>
+
+  <div id="leaderboardSection">
+    <h3>🏆 טבלת שיאים</h3>
+    <div id="leaderboardTable"></div>
+  </div>
 </div>
 
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
 <script>
+// ==============================================
+//  FIREBASE LEADERBOARD
+// ==============================================
+
+// ▼▼▼ הדבק כאן את ה-config שלך מ-Firebase Console ▼▼▼
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyDrKJ1oS96pa9CTprIe-p0DTirM_SpVwaE",
+  authDomain: "ilaybus-fc485.firebaseapp.com",
+  databaseURL: "https://ilaybus-fc485-default-rtdb.firebaseio.com",
+  projectId: "ilaybus-fc485",
+  storageBucket: "ilaybus-fc485.firebasestorage.app",
+  messagingSenderId: "373549699602",
+  appId: "1:373549699602:web:1cdb683a50e71cf2eafecb",
+  measurementId: "G-BHV7XQRM7N"
+};
+// ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
+let leaderboardRef = null;
+try {
+  firebase.initializeApp(FIREBASE_CONFIG);
+  leaderboardRef = firebase.database().ref('leaderboard');
+} catch (e) {
+  console.warn('Firebase not configured:', e.message);
+}
+
+async function fetchTopScores() {
+  if (!leaderboardRef) return [];
+  const snap = await leaderboardRef.orderByChild('score').limitToLast(10).get();
+  if (!snap.exists()) return [];
+  const entries = [];
+  snap.forEach(child => entries.push(child.val()));
+  return entries.sort((a, b) => b.score - a.score);
+}
+
+async function initLeaderboardUI(finalScore) {
+  document.getElementById('leaderboardTable').innerHTML =
+    '<p style="color:rgba(255,255,255,0.5);text-align:center;font-size:13px">טוען...</p>';
+  try {
+    const top = await fetchTopScores();
+    renderLeaderboard(top, -1);
+    if (top.length < 10 || finalScore > top[top.length - 1].score) {
+      document.getElementById('nameEntry').style.display = 'block';
+      document.getElementById('playerNameInput').value = '';
+      setTimeout(() => document.getElementById('playerNameInput').focus(), 100);
+    }
+  } catch (e) {
+    document.getElementById('leaderboardTable').innerHTML =
+      '<p style="color:#ff8a80;text-align:center;font-size:13px">שגיאה בטעינת הטבלה</p>';
+  }
+}
+
+async function submitToLeaderboard() {
+  const input = document.getElementById('playerNameInput');
+  const name = input.value.trim() || 'אנונימי';
+  const btn = document.getElementById('submitNameBtn');
+  btn.disabled = true;
+  btn.textContent = 'שומר...';
+  try {
+    await leaderboardRef.push({ name, score, date: Date.now() });
+    document.getElementById('nameEntry').style.display = 'none';
+    const top = await fetchTopScores();
+    let hi = -1;
+    for (let i = 0; i < top.length; i++) {
+      if (top[i].name === name && top[i].score === score) { hi = i; break; }
+    }
+    renderLeaderboard(top, hi);
+  } catch (e) {
+    btn.disabled = false;
+    btn.textContent = 'שמור 💾';
+    alert('שגיאה בשמירה — בדוק את חיבור האינטרנט ונסה שוב.');
+  }
+}
+
 // ==============================================
 //  BUS CITY GAME  –  complete implementation
 // ==============================================
@@ -575,6 +696,33 @@ function winGame() {
     penRow.style.display = 'none';
   }
   document.getElementById('winScreen').classList.add('show');
+  initLeaderboardUI(score);
+}
+
+function renderLeaderboard(lb, highlightIdx) {
+  const container = document.getElementById('leaderboardTable');
+  if (!lb || !lb.length) {
+    container.innerHTML = '<p style="color:rgba(255,255,255,0.55);text-align:center;font-size:13px">אין ניקוד עדיין — היה הראשון!</p>';
+    return;
+  }
+  const medals = ['🥇', '🥈', '🥉'];
+  let html = '<table><tr><th style="text-align:center">#</th><th style="text-align:right">שם</th><th style="text-align:center">ניקוד</th></tr>';
+  lb.forEach((entry, i) => {
+    const cls = i === highlightIdx ? 'new-entry' : (i % 2 === 0 ? 'even' : '');
+    const place = medals[i] !== undefined ? medals[i] : (i + 1);
+    const nameColor = i === highlightIdx ? '#ffd700' : 'white';
+    html += `<tr class="${cls}">
+      <td style="text-align:center;color:#ffd700">${place}</td>
+      <td style="text-align:right;color:${nameColor}">${escHtml(entry.name)}</td>
+      <td style="text-align:center;color:#69f0ae;font-weight:bold">${entry.score}</td>
+    </tr>`;
+  });
+  html += '</table>';
+  container.innerHTML = html;
+}
+
+function escHtml(s) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 function resetGame() {
@@ -594,6 +742,7 @@ function resetGame() {
   document.getElementById('hudScore').textContent = 0;
   document.getElementById('stopBanner').style.display = 'none';
   document.getElementById('winScreen').classList.remove('show');
+  document.getElementById('nameEntry').style.display = 'none';
   document.getElementById('startScreen').style.display = 'none';
   gameState = 'playing';
 }
@@ -1104,6 +1253,7 @@ bindDpad('dpUp','up'); bindDpad('dpDown','down');
 bindDpad('dpLeft','left'); bindDpad('dpRight','right');
 
 document.getElementById('btnDoor').addEventListener('pointerdown', e => { e.preventDefault(); openDoor(); });
+document.getElementById('playerNameInput').addEventListener('keydown', e => { if (e.key === 'Enter') submitToLeaderboard(); });
 document.getElementById('btnHorn').addEventListener('pointerdown', e => { e.preventDefault(); pressHorn(); });
 
 // ==============================================

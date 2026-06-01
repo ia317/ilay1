@@ -675,12 +675,12 @@ function updateScoreHUD() {
   document.getElementById('hudScore').textContent = score;
 }
 
-function winGame() {
+function winGame(manual = false) {
   gameState = 'won';
   sfxWin();
   const elapsed = Math.floor((Date.now() - gameStartTime) / 1000);
   const maxTime = 600; // 10 minutes reference for time bonus
-  const timeBonus = Math.max(0, maxTime - elapsed) * 2;
+  const timeBonus = manual ? 0 : Math.max(0, maxTime - elapsed) * 2;
   score += timeBonus;
   const stopsScore  = stopsVisited * 100;
   const passScore   = bus.passengers * 10;
@@ -1254,7 +1254,7 @@ function bindDpad(id, key) {
 bindDpad('dpUp','up'); bindDpad('dpDown','down');
 bindDpad('dpLeft','left'); bindDpad('dpRight','right');
 
-document.getElementById('btnFinish').addEventListener('pointerdown', e => { e.preventDefault(); if (gameState === 'playing') winGame(); });
+document.getElementById('btnFinish').addEventListener('pointerdown', e => { e.preventDefault(); if (gameState === 'playing') winGame(true); });
 document.getElementById('btnDoor').addEventListener('pointerdown', e => { e.preventDefault(); openDoor(); });
 document.getElementById('playerNameInput').addEventListener('keydown', e => { if (e.key === 'Enter') submitToLeaderboard(); });
 document.getElementById('btnHorn').addEventListener('pointerdown', e => { e.preventDefault(); pressHorn(); });

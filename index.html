@@ -203,7 +203,7 @@
   </p>
   <p class="keys">⬆️⬇️⬅️➡️ לנסיעה &nbsp;|&nbsp; 🚪 לפתיחת דלת &nbsp;|&nbsp; מקלדת: חצים + רווח</p>
   <button id="startBtn" onclick="startGame()">יאללה נסעים! 🚀</button>
-  <p class="version">v1.6</p>
+  <p class="version">v1.7</p>
 </div>
 
 <div id="winScreen">
@@ -262,14 +262,11 @@ try {
 
 async function fetchTopScores() {
   if (!leaderboardRef) return [];
-  const snap = await leaderboardRef.orderByChild('score').limitToLast(100).get();
+  const snap = await leaderboardRef.orderByChild('score').limitToLast(10).get();
   if (!snap.exists()) return [];
-  const all = [];
-  snap.forEach(child => all.push(child.val()));
-  // keep only best score per name
-  const best = {};
-  all.forEach(e => { if (!best[e.name] || e.score > best[e.name].score) best[e.name] = e; });
-  return Object.values(best).sort((a, b) => b.score - a.score).slice(0, 10);
+  const entries = [];
+  snap.forEach(child => entries.push(child.val()));
+  return entries.sort((a, b) => b.score - a.score);
 }
 
 async function initLeaderboardUI(finalScore) {

@@ -77,8 +77,9 @@
       touch-action: none;
     }
     .abtn:active, .abtn.pressed { transform: scale(0.88); filter: brightness(1.2); }
-    #btnDoor { background: linear-gradient(145deg, #2196f3, #0d47a1); }
-    #btnHorn { background: linear-gradient(145deg, #ff5722, #bf360c); }
+    #btnDoor   { background: linear-gradient(145deg, #2196f3, #0d47a1); }
+    #btnHorn   { background: linear-gradient(145deg, #ff5722, #bf360c); }
+    #btnFinish { background: linear-gradient(145deg, #e53935, #b71c1c); }
 
     /* ── Start screen ── */
     #startScreen {
@@ -184,6 +185,7 @@
     <div class="dp empty"></div>
   </div>
   <div id="actionBtns">
+    <div class="abtn" id="btnFinish"><span style="font-size:30px">🏁</span>סיים</div>
     <div class="abtn" id="btnDoor"><span style="font-size:30px">🚪</span>דלת</div>
     <div class="abtn" id="btnHorn"><span style="font-size:30px">📯</span>צפרה</div>
   </div>
@@ -1229,15 +1231,15 @@ function loop(ts) {
 window.addEventListener('keydown', e => {
   if (['ArrowUp','w','W'].includes(e.key))    { keys.up    = true; initAudio(); e.preventDefault(); }
   if (['ArrowDown','s','S'].includes(e.key))  { keys.down  = true; initAudio(); e.preventDefault(); }
-  if (['ArrowLeft','a','A'].includes(e.key))  { keys.left  = true; initAudio(); e.preventDefault(); }
-  if (['ArrowRight','d','D'].includes(e.key)) { keys.right = true; initAudio(); e.preventDefault(); }
+  if (['ArrowLeft','a','A'].includes(e.key))  { keys.right = true; initAudio(); e.preventDefault(); }
+  if (['ArrowRight','d','D'].includes(e.key)) { keys.left  = true; initAudio(); e.preventDefault(); }
   if (e.key === ' ') { openDoor(); e.preventDefault(); }
 });
 window.addEventListener('keyup', e => {
   if (['ArrowUp','w','W'].includes(e.key))    keys.up    = false;
   if (['ArrowDown','s','S'].includes(e.key))  keys.down  = false;
-  if (['ArrowLeft','a','A'].includes(e.key))  keys.left  = false;
-  if (['ArrowRight','d','D'].includes(e.key)) keys.right = false;
+  if (['ArrowLeft','a','A'].includes(e.key))  keys.right = false;
+  if (['ArrowRight','d','D'].includes(e.key)) keys.left  = false;
 });
 
 function bindDpad(id, key) {
@@ -1250,8 +1252,9 @@ function bindDpad(id, key) {
   el.addEventListener('pointercancel',up);
 }
 bindDpad('dpUp','up'); bindDpad('dpDown','down');
-bindDpad('dpLeft','left'); bindDpad('dpRight','right');
+bindDpad('dpLeft','right'); bindDpad('dpRight','left');
 
+document.getElementById('btnFinish').addEventListener('pointerdown', e => { e.preventDefault(); if (gameState === 'playing') winGame(); });
 document.getElementById('btnDoor').addEventListener('pointerdown', e => { e.preventDefault(); openDoor(); });
 document.getElementById('playerNameInput').addEventListener('keydown', e => { if (e.key === 'Enter') submitToLeaderboard(); });
 document.getElementById('btnHorn').addEventListener('pointerdown', e => { e.preventDefault(); pressHorn(); });
